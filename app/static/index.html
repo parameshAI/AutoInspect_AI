@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoInspect AI | Next-Gen Vehicle Valuation</title>
+    <meta name="description" content="AI-driven used car evaluation system using Vision CNNs and Generative AI.">
+    <link rel="stylesheet" href="/static/css/style.css?v=4">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">
+                <div class="brand-icon">A</div>
+                <h2>AutoInspect <span class="gradient-text">AI</span></h2>
+            </div>
+            <div class="status-badge" id="system-status">
+                <div class="status-dot"></div>
+                System Online
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            <!-- Left Column: Input Form -->
+            <section class="glass-panel input-section">
+                <h3 style="margin-bottom: 0.5rem; font-size: 1.4rem;">Vehicle Diagnostics</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 2.5rem; font-size: 0.95rem;">Upload a vehicle image and provide base specifications to run the multi-modal valuation AI.</p>
+
+                <form id="inspection-form">
+                    <!-- Image Upload -->
+                    <div class="upload-zone" id="upload-zone">
+                        <div class="upload-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        </div>
+                        <h4 style="margin-bottom: 0.5rem; font-size: 1.1rem; color: var(--text-pure);">Drag & Drop Vehicle Image</h4>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">or click to browse (JPEG, PNG)</p>
+                        <input type="file" id="image-upload" name="image" accept="image/*" style="display: none;">
+                        <img id="image-preview" alt="Vehicle Preview">
+                    </div>
+
+                    <!-- Quick Samples -->
+                    <div style="margin-bottom: 2.5rem;">
+                        <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">Quick Demo Vehicles (Click to Load)</label>
+                        <div class="samples-container" id="samples-container">
+                            <!-- Sample cards injected via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Specs Form -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Make</label>
+                            <select id="make" name="make" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Model</label>
+                            <select id="model" name="model" required>
+                                <option value="">Select Make First</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Year</label>
+                            <select id="year" name="year" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Mileage</label>
+                            <input type="number" id="mileage" name="mileage" min="0" value="45000" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Engine Size (L)</label>
+                            <input type="number" id="engine_size" name="engine_size" min="0.5" max="8.0" step="0.1" value="2.0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Transmission</label>
+                            <select id="transmission" name="transmission" required></select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Fuel Type</label>
+                            <select id="fuel_type" name="fuel_type" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Body Type</label>
+                            <select id="body_type" name="body_type" required></select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submit-btn">
+                        <span>Run Multi-Modal Analysis</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </button>
+                </form>
+
+                <!-- Processing Overlay -->
+                <div class="analysis-overlay" id="analysis-overlay">
+                    <div class="scanner-box">
+                        <div class="scanner-line"></div>
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path><path d="M2 12h20"></path></svg>
+                    </div>
+                    <div class="processing-text font-mono" style="color: var(--accent-primary); font-size: 1.1rem;" id="processing-text">INITIALIZING CNN TENSORS...</div>
+                </div>
+            </section>
+
+            <!-- Right Column: Results -->
+            <section class="glass-panel results-section" style="min-height: 800px;">
+                <div id="empty-state" style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.4;">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1.5rem;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
+                    <h3 style="font-size: 1.4rem; font-weight: 500;">Awaiting Vehicle Data</h3>
+                    <p style="margin-top: 0.5rem;">Submit a vehicle to generate the inspection report.</p>
+                </div>
+
+                <div class="results-container" id="results-container">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <h2 style="color: var(--text-pure); margin-bottom: 0.2rem; font-size: 2.2rem;" id="res-title">2021 Toyota RAV4</h2>
+                            <p class="font-mono" style="color: var(--accent-primary); font-size: 0.95rem; letter-spacing: 1px;" id="res-id">INSP-XXXXXXXX</p>
+                        </div>
+                        <div class="condition-badge-large" id="res-condition-badge">WHOLE</div>
+                    </div>
+
+                    <div class="valuation-card">
+                        <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px;">Adjusted Market Valuation</div>
+                        <div class="price-value" id="res-price">$0</div>
+                        <div style="font-size: 1rem; color: var(--text-secondary);" id="res-range">Estimated Range: $0 - $0</div>
+                        
+                        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: center; gap: 4rem;">
+                            <div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); letter-spacing: 1px; margin-bottom: 0.5rem;">BASE TABULAR ML</div>
+                                <div style="color: var(--text-pure); font-weight: 800; font-size: 1.4rem;" id="res-base-price">$0</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); letter-spacing: 1px; margin-bottom: 0.5rem;">VISION PENALTY</div>
+                                <div style="color: var(--accent-tertiary); font-weight: 800; font-size: 1.4rem; text-shadow: 0 0 15px rgba(255,0,85,0.4);" id="res-penalty">0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 style="margin-bottom: 1.5rem; color: var(--text-pure); font-size: 1.2rem;">Visual AI Diagnostics</h4>
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <div class="metric-header"><span>Body Integrity</span><span class="metric-value font-mono" id="met-body">95/100</span></div>
+                                <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-body"></div></div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-header"><span>Structural Fit</span><span class="metric-value font-mono" id="met-struct">96/100</span></div>
+                                <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-struct"></div></div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-header"><span>Paint Quality</span><span class="metric-value font-mono" id="met-paint">92/100</span></div>
+                                <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-paint"></div></div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-header"><span>Market Demand</span><span class="metric-value font-mono" id="met-market">89/100</span></div>
+                                <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-market"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h4 style="color: var(--text-pure); font-size: 1.2rem;">Executive AI Report</h4>
+                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-secondary); background: rgba(112,0,255,0.1); padding: 0.4rem 1rem; border-radius: 20px; border: 1px solid rgba(112,0,255,0.3);" id="res-generator">
+                                Generated by Gemini
+                            </div>
+                        </div>
+                        
+                        <div class="report-content" id="res-report-content">
+                            <!-- Paragraphs injected here -->
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="btn-secondary" id="btn-audio">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                                Audio Summary
+                            </button>
+                            <button class="btn-secondary" id="btn-print">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                Export PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="/static/js/app.js?v=4"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Secrets
+.env
+.env.local
+
+# Machine Learning Weights & Data
+weights/
+data/
+*.joblib
+*.pth
+
+# Project specific
+app/assets/sample_*.jpg
+.DS_Store
