@@ -16,6 +16,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Optimize memory for Render Free Tier (512MB limit)
+ENV MALLOC_ARENA_MAX=2
+ENV WEB_CONCURRENCY=1
+ENV MAX_WORKERS=1
+
 # Expose port
 EXPOSE 8000
 
